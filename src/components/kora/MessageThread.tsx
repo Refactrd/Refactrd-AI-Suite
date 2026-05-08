@@ -10,7 +10,7 @@ interface MessageThreadProps {
   isLoading: boolean;
 }
 
-export function MessageThread({ messages, isLoading }: MessageThreadProps) {
+export function MessageThread({ messages }: MessageThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

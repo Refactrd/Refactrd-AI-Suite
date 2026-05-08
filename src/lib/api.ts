@@ -1,4 +1,4 @@
-import { ApiError, QueryRequest } from "@/types";
+import { ApiError, Citation, QueryRequest } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -7,7 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 export async function streamKoraQuery(
   request: QueryRequest,
   onChunk: (chunk: string) => void,
-  onCitations: (citations: any[]) => void,
+  onCitations: (citations: Citation[]) => void,
   onError: (error: ApiError) => void,
   onDone: () => void,
 ): Promise<void> {
@@ -87,7 +87,7 @@ export async function streamKoraQuery(
         }
       }
     }
-  } catch (err) {
+  } catch {
     onError({
       message: "Could not reach Kora. Please try again.",
       code: "SERVICE_UNAVAILABLE",
