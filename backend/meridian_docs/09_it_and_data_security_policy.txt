@@ -1,0 +1,35 @@
+MERIDIAN WORKS IT AND DATA SECURITY POLICY
+IT Department | Effective January 2025
+
+1. PURPOSE
+This policy sets out the rules for the use of Meridian Works IT systems, devices, and data. It applies to all employees, contractors, and anyone accessing company systems.
+
+2. ACCEPTABLE USE
+Company IT systems are provided for business purposes. Limited personal use is acceptable provided it does not interfere with work, consume excessive bandwidth, or expose systems to risk. Prohibited uses include accessing illegal content, downloading unlicensed software, and using company systems for personal commercial activity.
+
+3. PASSWORD POLICY
+All passwords must be at least 12 characters and include uppercase, lowercase, numbers, and symbols. Passwords must not be shared or reused across systems. The company password manager (1Password) must be used for all work accounts. Passwords must be changed immediately if a breach is suspected.
+
+4. MULTI-FACTOR AUTHENTICATION
+MFA is mandatory for all company accounts including email, Slack, Notion, and any system containing client or financial data. Employees who bypass or disable MFA will face immediate disciplinary action.
+
+5. DEVICE SECURITY
+All company devices must have full-disk encryption enabled. Devices must be locked when unattended. Lost or stolen devices must be reported to IT immediately. IT reserves the right to remotely wipe any company device.
+
+6. DATA CLASSIFICATION
+Company data is classified as: Public, Internal, Confidential, or Restricted. Confidential and Restricted data must not be shared externally without explicit approval. Client data is always classified as Confidential at minimum.
+
+7. DATA STORAGE
+Company data must be stored in approved systems only (Google Drive, Notion, Supabase, or other IT-approved platforms). Personal cloud storage (personal Google Drive, Dropbox, iCloud) must not be used for company data.
+
+8. SOFTWARE INSTALLATION
+Only IT-approved software may be installed on company devices. Requests for new software are submitted to IT via Slack. Unapproved software installations are a disciplinary offence.
+
+9. INCIDENT REPORTING
+Any suspected security incident, including phishing attempts, suspicious access, or data loss, must be reported to IT immediately via it@meridianworks.co or the IT channel on Slack. Delayed reporting may worsen the impact and is itself a policy violation.
+
+10. THIRD PARTY ACCESS
+Vendors and contractors requiring access to company systems must be approved by IT and sign a data processing agreement. Access is provisioned with least privilege and reviewed quarterly.
+
+11. POLICY VIOLATIONS
+Violations of this policy may result in disciplinary action up to and including termination, depending on severity. Intentional breaches that result in data loss or exposure may also result in legal action.

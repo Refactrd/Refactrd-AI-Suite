@@ -1,0 +1,39 @@
+MERIDIAN WORKS ONBOARDING GUIDE
+For New Employees | People & Culture Team
+
+WELCOME
+Congratulations on joining Meridian Works. This guide walks you through your first 30 days and tells you everything you need to know to get started effectively.
+
+BEFORE YOUR FIRST DAY
+- You will receive a welcome email from People & Culture with your start date, reporting manager, and first-day logistics.
+- Your laptop will be configured and ready for collection on Day 1.
+- You will receive Slack, email, and Notion access within the first two hours of Day 1.
+
+WEEK 1: ORIENTATION
+Day 1: Meet your team lead and People & Culture contact. Collect your equipment. Complete IT setup. Read the Employee Handbook and sign the acknowledgement form.
+Day 2-3: Complete mandatory onboarding sessions: Company Overview, Security Awareness, and Tools Training.
+Day 4-5: Shadow your team. Attend your first team standup. Meet your onboarding buddy.
+
+ONBOARDING BUDDY
+Every new hire is assigned an onboarding buddy, a colleague in a similar role who helps you navigate the company in your first month. Your buddy is not your manager. They are a peer resource for informal questions.
+
+WEEK 2-4: RAMP UP
+You will be assigned starter tasks appropriate to your role. Your team lead will set 30-day goals with you in your first week. A check-in meeting is scheduled at the end of Week 2 and Week 4.
+
+MANDATORY TRAINING
+All employees must complete the following in their first 2 weeks:
+1. Data Protection and Privacy Training
+2. Security Awareness Training
+3. Anti-Harassment and Code of Conduct Training
+Completion is tracked by the People & Culture team. Incomplete training after 2 weeks is escalated to your team lead.
+
+EQUIPMENT AND TOOLS
+You will receive a company laptop. Personal devices may be used for communication but not for storing company data. Full list of provisioned tools is in the IT section of Notion.
+
+30-DAY CHECK-IN
+At the end of your first month, you will have a formal check-in with your team lead and People & Culture. This is a two-way conversation about your experience, role clarity, and any support you need.
+
+KEY CONTACTS
+People & Culture: people@meridianworks.co
+IT Support: it@meridianworks.co
+Finance: finance@meridianworks.co
