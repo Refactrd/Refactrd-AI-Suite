@@ -1,3 +1,4 @@
+from app.services.ingestion import ingest_document
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.services.ingestion import ingest_document
 from app.config import get_settings
@@ -50,3 +51,25 @@ def delete_document(document_id: str):
     # Chunks are deleted automatically via cascade
     supabase.table("documents").delete().eq("id", document_id).execute()
     return {"message": "Document deleted successfully."}
+
+@router.post("/documents/{document_id}/reingest")
+async def reingest_document(document_id: str):
+    # Mark as queued first
+    supabase.table("documents").update({
+        "status": "queued",
+        "chunk_count": 0,
+    }).eq("id", document_id).execute()
+
+    # Delete existing chunks
+    supabase.table("chunks").delete().eq("document_id", document_id).execute()
+
+    # Fetch raw file from storage
+    try:
+        file_response = supabase.storage.from_("documents").download(document_id)
+        result = ingest_document(file_response, document_id)
+        return result
+    except Exception as e:
+        supabase.table("documents").update({
+            "status": "failed",
+        }).eq("id", document_id).execute()
+        raise HTTPException(status_code=500, detail=str(e))
