@@ -28,15 +28,15 @@ export function KoraHeader({
   }, []);
 
   return (
-    <header className="relative z-20 flex items-center justify-between px-5 py-3.5 border-b border-border-light dark:border-border-dark bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+    <header className="relative z-20 flex items-center justify-between px-3 sm:px-5 py-3 sm:py-3.5 border-b border-border-light dark:border-border-dark bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
 
       {/* LEFT: History + New Chat */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         {/* Chat History button */}
         <button
           onClick={onToggleHistory}
           className={cn(
-            "relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-[14px] font-medium",
+            "relative flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium",
             "transition-all duration-200",
             historyOpen
               ? "bg-sage-100 dark:bg-sage-900/40 text-sage-700 dark:text-sage-300 border border-sage-200 dark:border-sage-800"
@@ -45,7 +45,7 @@ export function KoraHeader({
           aria-label="Chat history"
         >
           <History className="w-3.5 h-3.5" strokeWidth={1.5} />
-          <span>Chat History</span>
+          <span className="hidden sm:inline">Chat History</span>
           {sessionCount > 0 && !historyOpen && (
             <span className="flex items-center justify-center w-4 h-4 rounded-full bg-sage-400 dark:bg-sage-600 text-white text-[9px] font-bold">
               {sessionCount > 9 ? "9+" : sessionCount}
@@ -58,7 +58,7 @@ export function KoraHeader({
           <button
             onClick={onClear}
             className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-[14px] font-medium",
+              "flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium",
               "text-text-secondary-light dark:text-text-secondary-dark",
               "hover:bg-surface-light dark:hover:bg-surface-dark",
               "border border-transparent hover:border-border-light dark:hover:border-border-dark",
@@ -66,21 +66,21 @@ export function KoraHeader({
             )}
           >
             <SquarePen className="w-3.5 h-3.5" strokeWidth={1.5} />
-            <span>New Chat</span>
+            <span className="hidden sm:inline">New Chat</span>
           </button>
         )}
       </div>
 
       {/* CENTER: Logo */}
-      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2.5">
-        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-sage-400 dark:bg-sage-600">
-          <Sparkles className="w-3.5 h-3.5 text-white" strokeWidth={1.5} />
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+        <div className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-sage-400 dark:bg-sage-600">
+          <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" strokeWidth={1.5} />
         </div>
         <div className="flex flex-col">
-          <span className="font-serif text-base leading-none text-primary-DEFAULT dark:text-primary-dark">
+          <span className="font-serif text-sm sm:text-base leading-none text-primary-DEFAULT dark:text-primary-dark">
             Kora
           </span>
-          <span className="text-[10px] text-text-muted-light dark:text-text-muted-dark leading-none mt-0.5 tracking-wide">
+          <span className="hidden sm:block text-[10px] text-text-muted-light dark:text-text-muted-dark leading-none mt-0.5 tracking-wide">
             Meridian Works
           </span>
         </div>

@@ -8,9 +8,10 @@ import { ThinkingIndicator } from "@/components/kora/ThinkingIndicator";
 interface MessageThreadProps {
   messages: Message[];
   isLoading: boolean;
+  onFollowUp: (question: string) => void;
 }
 
-export function MessageThread({ messages }: MessageThreadProps) {
+export function MessageThread({ messages, isLoading, onFollowUp }: MessageThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export function MessageThread({ messages }: MessageThreadProps) {
     <div className="flex-1 overflow-y-auto px-4 py-6">
       <div className="max-w-2xl mx-auto space-y-6">
         {visibleMessages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+          <MessageBubble key={message.id} message={message} onFollowUp={onFollowUp}/>
         ))}
 
         {showThinking && <ThinkingIndicator />}

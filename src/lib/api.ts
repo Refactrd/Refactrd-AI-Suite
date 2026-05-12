@@ -127,3 +127,21 @@ function mapStatusToCode(
       return "SERVICE_UNAVAILABLE";
   }
 }
+
+export async function fetchFollowUps(
+  question: string,
+  answer: string
+): Promise<string[]> {
+  try {
+    const response = await fetch(`${API_URL}/follow-ups`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, answer }),
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.questions ?? [];
+  } catch {
+    return [];
+  }
+}

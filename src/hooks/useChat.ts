@@ -9,13 +9,14 @@ import {
   ChatSession,
   SerializedMessage,
 } from "@/types";
-import { streamKoraQuery } from "@/lib/api";
+import { streamKoraQuery, fetchFollowUps } from "@/lib/api";
 
 export const STARTER_QUESTIONS = [
   {
     id: "1",
     label: "Leave Policy",
-    question: "How many days of annual leave are Meridian Works employees entitled to?",
+    question:
+      "How many days of annual leave are Meridian Works employees entitled to?",
   },
   {
     id: "2",
@@ -45,12 +46,18 @@ export const STARTER_QUESTIONS = [
 ];
 
 const ERROR_MESSAGES: Record<ApiError["code"], string> = {
-  RATE_LIMITED: "You have reached the query limit for this hour. Please try again later.",
-  INPUT_TOO_LONG: "Your question is too long. Please keep it under 500 characters.",
-  ABUSIVE_INPUT: "This assistant is designed for professional use. Please rephrase your question.",
-  UNCLEAR_INPUT: "I could not understand that question. Could you rephrase it with more detail?",
-  SERVICE_UNAVAILABLE: "Kora is temporarily unavailable. Please try again in a moment.",
-  UNCERTAIN: "I don't have enough information in Meridian Works' documents to answer this accurately. Please check with your line manager or the People & Culture team.",
+  RATE_LIMITED:
+    "You have reached the query limit for this hour. Please try again later.",
+  INPUT_TOO_LONG:
+    "Your question is too long. Please keep it under 500 characters.",
+  ABUSIVE_INPUT:
+    "This assistant is designed for professional use. Please rephrase your question.",
+  UNCLEAR_INPUT:
+    "I could not understand that question. Could you rephrase it with more detail?",
+  SERVICE_UNAVAILABLE:
+    "Kora is temporarily unavailable. Please try again in a moment.",
+  UNCERTAIN:
+    "I don't have enough information in Meridian Works' documents to answer this accurately. Please check with your line manager or the People & Culture team.",
 };
 
 const STORAGE_KEY = "kora_chat_sessions";
@@ -69,8 +76,10 @@ function serializeMessages(messages: Message[]): SerializedMessage[] {
       content: m.content,
       citations: m.citations,
       isError: m.isError,
+      errorCode: m.errorCode,
       confidence: m.confidence,
       timestamp: m.timestamp.toISOString(),
+      followUps: m.followUps,
     }));
 }
 
@@ -173,8 +182,12 @@ export function useChat() {
         if (existing) {
           updated = prev.map((s) =>
             s.id === sessionId
-              ? { ...s, messages: serialized, updatedAt: new Date().toISOString() }
-              : s
+              ? {
+                  ...s,
+                  messages: serialized,
+                  updatedAt: new Date().toISOString(),
+                }
+              : s,
           );
         } else {
           const newSession: ChatSession = {
@@ -191,7 +204,7 @@ export function useChat() {
         return updated;
       });
     },
-    []
+    [],
   );
 
   const updateLastAssistantMessage = useCallback(
@@ -205,7 +218,7 @@ export function useChat() {
         return { ...prev, messages };
       });
     },
-    []
+    [],
   );
 
   const sendMessage = useCallback(
@@ -262,12 +275,15 @@ export function useChat() {
 
         (error: ApiError) => {
           if (abortRef.current) return;
-          const errorMessage = ERROR_MESSAGES[error.code] || "Something went wrong. Please try again.";
+          const errorMessage =
+            ERROR_MESSAGES[error.code] ||
+            "Something went wrong. Please try again.";
           updateLastAssistantMessage((msg) => ({
             ...msg,
             content: errorMessage,
             isStreaming: false,
             isError: true,
+            errorCode: error.code,
             confidence: "uncertain",
           }));
           setState((prev) => {
@@ -276,17 +292,50 @@ export function useChat() {
           });
         },
 
-        () => {
+        
+
+        // onDone
+        async () => {
           if (abortRef.current) return;
           updateLastAssistantMessage((msg) => ({ ...msg, isStreaming: false }));
+
           setState((prev) => {
             persistSession(prev.messages, currentSessionId);
             return { ...prev, isLoading: false };
           });
-        }
+
+          // Fetch follow-up suggestions after streaming is done
+          setState((prev) => {
+            const lastAssistant = [...prev.messages]
+              .reverse()
+              .find((m) => m.role === "assistant");
+            if (!lastAssistant || !lastAssistant.content) return prev;
+
+            fetchFollowUps(question.trim(), lastAssistant.content).then(
+              (followUps) => {
+                if (followUps.length === 0) return;
+                setState((s) => {
+                  const msgs = [...s.messages];
+                  const idx = msgs.findIndex((m) => m.id === lastAssistant.id);
+                  if (idx !== -1) {
+                    msgs[idx] = { ...msgs[idx], followUps };
+                  }
+                  return { ...s, messages: msgs };
+                });
+              },
+            );
+
+            return prev;
+          });
+        },
       );
     },
-    [state.isLoading, updateLastAssistantMessage, activeSessionId, persistSession]
+    [
+      state.isLoading,
+      updateLastAssistantMessage,
+      activeSessionId,
+      persistSession,
+    ],
   );
 
   const loadSession = useCallback((sessionId: string) => {
@@ -324,7 +373,7 @@ export function useChat() {
       });
       if (activeSessionId === sessionId) clearChat();
     },
-    [activeSessionId, clearChat]
+    [activeSessionId, clearChat],
   );
 
   const renameSession = useCallback((sessionId: string, newTitle: string) => {
@@ -332,7 +381,7 @@ export function useChat() {
       const updated = prev.map((s) =>
         s.id === sessionId
           ? { ...s, title: newTitle, updatedAt: new Date().toISOString() }
-          : s
+          : s,
       );
       saveSessions(updated);
       return updated;

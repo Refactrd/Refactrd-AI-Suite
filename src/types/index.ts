@@ -15,8 +15,10 @@ export interface Message {
   citations?: Citation[];
   isStreaming?: boolean;
   isError?: boolean;
+  errorCode?: ApiError["code"];
   confidence?: "high" | "low" | "uncertain";
   timestamp: Date;
+  followUps?: string[];
 }
 
 // ─── Chat Types ───────────────────────────────────────────────────────────────
@@ -49,8 +51,10 @@ export interface SerializedMessage {
   content: string;
   citations?: Citation[];
   isError?: boolean;
+  errorCode?: ApiError["code"];
   confidence?: "high" | "low" | "uncertain";
   timestamp: string;
+  followUps?: string[];
 }
 
 // ─── Document Types ───────────────────────────────────────────────────────────

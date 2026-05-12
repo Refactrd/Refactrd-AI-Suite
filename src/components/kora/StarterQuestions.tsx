@@ -11,18 +11,18 @@ interface StarterQuestionsProps {
 
 export function StarterQuestions({ questions, onSelect }: StarterQuestionsProps) {
   return (
-    <div className="w-full max-w-2xl">
-      <p className="text-xs font-medium text-text-muted-light dark:text-text-muted-dark uppercase tracking-widest mb-4 text-center">
+    <div className="w-full max-w-2xl px-1">
+      <p className="text-xs font-medium text-text-muted-light dark:text-text-muted-dark uppercase tracking-widest mb-3 text-center">
         Try asking
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {questions.map((q, i) => (
           <button
             key={q.id}
             onClick={() => onSelect(q.question)}
             style={{ animationDelay: `${i * 60}ms` }}
             className={cn(
-              "group relative flex items-start justify-between gap-3 p-4 rounded-xl text-left",
+              "group relative flex items-start justify-between gap-3 p-3 sm:p-4 rounded-xl text-left",
               "bg-surface-light dark:bg-surface-dark",
               "border border-border-light dark:border-border-dark",
               "hover:border-sage-300 dark:hover:border-sage-700",
@@ -35,13 +35,13 @@ export function StarterQuestions({ questions, onSelect }: StarterQuestionsProps)
               <span className="text-[10px] font-semibold text-sage-600 dark:text-sage-400 uppercase tracking-wider">
                 {q.label}
               </span>
-              <span className="text-sm text-text-primary-light dark:text-text-primary-dark leading-snug">
+              <span className="text-xs sm:text-sm text-text-primary-light dark:text-text-primary-dark leading-snug">
                 {q.question}
               </span>
             </div>
             <ArrowUpRight
               className={cn(
-                "w-4 h-4 flex-shrink-0 mt-0.5",
+                "w-3.5 h-3.5 flex-shrink-0 mt-0.5",
                 "text-text-muted-light dark:text-text-muted-dark",
                 "group-hover:text-sage-500 dark:group-hover:text-sage-400",
                 "group-hover:translate-x-0.5 group-hover:-translate-y-0.5",
