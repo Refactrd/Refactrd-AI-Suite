@@ -144,7 +144,7 @@ export default async function SuiteDashboard() {
             <a
               href="/suite/kora"
               className="text-xs font-semibold"
-              style={{ color: "#a2d2ff", textDecoration: "none" }}
+              style={{ color: "#000", textDecoration: "none" }}
             >
               View all in Kora →
             </a>

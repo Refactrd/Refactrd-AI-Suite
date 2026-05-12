@@ -2,7 +2,6 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 import {
   LayoutDashboard,
@@ -130,62 +129,40 @@ export function SuiteSidebar({ userEmail }: SuiteSidebarProps) {
     >
       {/* ── Logo header ── */}
       <div
-        className="flex items-center border-b flex-shrink-0 overflow-hidden"
+        className="flex items-center justify-center border-b flex-shrink-0"
         style={{
           borderColor: "#d0d8e4",
-          height: "64px",
-          padding: collapsed ? "0 0 0 0" : "0 16px",
+          height: collapsed ? "72px" : "70px",
+          minHeight: collapsed ? "72px" : "70px",
+          transition: "height 260ms cubic-bezier(0.4,0,0.2,1), min-height 260ms cubic-bezier(0.4,0,0.2,1)",
           justifyContent: collapsed ? "center" : "flex-start",
-          transition: "padding 260ms cubic-bezier(0.4,0,0.2,1)",
         }}
       >
         {collapsed ? (
-          /* Small logomark when collapsed */
+          /* Collapsed: small icon mark in brand square */
           <div
             className="flex items-center justify-center rounded-xl flex-shrink-0"
-            style={{ width: "36px", height: "36px", backgroundColor: "#1f2a44", minWidth: "36px" }}
+            style={{ width: "50px", height: "50px",  backgroundColor: "#1f2a44", minWidth: "50px" }}
           >
             <Image
               src="/images/refactrd-small-logo.png"
               alt="Refactrd"
-              width={20}
-              height={20}
+              width={22}
+              height={22}
               className="object-contain"
-              style={{ filter: "brightness(0) invert(1)" }}
             />
           </div>
         ) : (
-          /* Full logo when expanded */
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div
-              className="flex items-center justify-center rounded-xl flex-shrink-0"
-              style={{ width: "46px", height: "46px", minWidth: "86px" }}
-            >
-              <Image
-                src="/images/refactrd-dark-logo.png"
-                alt="Refactrd"
-                width={100}
-                height={100}
-                className="object-contain"
-                
-              />
-            </div>
-            <div
-              style={{
-                opacity: collapsed ? 0 : 1,
-                transition: "opacity 200ms ease",
-              }}
-            >
-              <p
-                className="text-sm font-bold leading-none whitespace-nowrap"
-                style={{ color: "#1f2a44", fontFamily: "var(--font-montserrat), sans-serif" }}
-              >
-                Refactrd
-              </p>
-              <p className="text-[10px] mt-0.5 whitespace-nowrap" style={{ color: "#9aa5b4" }}>
-                AI Suite
-              </p>
-            </div>
+          /* Expanded: big logo + AI Suite label stacked */
+          <div className="flex items-center">
+            <Image
+              src="/images/Refactrd-logo-short.png"
+              alt="Refactrd"
+              width={150}
+              height={36}
+              className="object-contain"
+              
+            />
           </div>
         )}
       </div>
@@ -195,7 +172,7 @@ export function SuiteSidebar({ userEmail }: SuiteSidebarProps) {
         onClick={toggleCollapsed}
         className="absolute flex items-center justify-center rounded-full border transition-all duration-200 z-50"
         style={{
-          top: "42px",
+          top: collapsed ? "36px" : "48px",
           right: "-13px",
           width: "26px",
           height: "26px",

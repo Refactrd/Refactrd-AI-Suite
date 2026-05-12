@@ -181,7 +181,6 @@ function TypingText({ text }: { text: string }) {
 
 function GreetingCard({
   config,
-  timeOfDay,
 }: {
   config: (typeof TIME_CONFIG)[TimeOfDay];
   timeOfDay: TimeOfDay;

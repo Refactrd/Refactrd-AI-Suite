@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   FileText,
-  Upload,
   Trash2,
   RefreshCw,
   CheckCircle,
@@ -16,6 +15,9 @@ import {
   Database,
   ExternalLink,
   CloudUpload,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -30,9 +32,12 @@ interface Document {
   updated_at: string;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
+const PAGE_SIZE = 8;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -43,7 +48,10 @@ function formatDate(dateStr: string): string {
 }
 
 function formatFileName(name: string): string {
-  return name.replace(/^\d+_/, "").replace(/_/g, " ").replace(/\.txt$|\.pdf$/, "");
+  return name
+    .replace(/^\d+_/, "")
+    .replace(/_/g, " ")
+    .replace(/\.txt$|\.pdf$/, "");
 }
 
 // ─── Status chip ──────────────────────────────────────────────────────────────
@@ -63,12 +71,7 @@ function StatusChip({ status }: { status: Document["status"] }) {
       bg: "#fef3c7",
       spin: true,
     },
-    queued: {
-      label: "Queued",
-      icon: Clock,
-      color: "#0369a1",
-      bg: "#e0f2fe",
-    },
+    queued: { label: "Queued", icon: Clock, color: "#0369a1", bg: "#e0f2fe" },
     failed: {
       label: "Failed",
       icon: AlertCircle,
@@ -91,7 +94,10 @@ function StatusChip({ status }: { status: Document["status"] }) {
       />
       <span
         className="text-[11px] font-semibold"
-        style={{ color: config.color, fontFamily: "var(--font-montserrat), sans-serif" }}
+        style={{
+          color: config.color,
+          fontFamily: "var(--font-montserrat), sans-serif",
+        }}
       >
         {config.label}
       </span>
@@ -128,23 +134,31 @@ function ConfirmDialog({
         >
           <X className="w-4 h-4" />
         </button>
-
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
           style={{ backgroundColor: "#fef2f2" }}
         >
-          <Trash2 className="w-5 h-5" style={{ color: "#dc2626" }} strokeWidth={1.5} />
+          <Trash2
+            className="w-5 h-5"
+            style={{ color: "#dc2626" }}
+            strokeWidth={1.5}
+          />
         </div>
-
         <h3
           className="text-base font-bold mb-1"
-          style={{ color: "#1f2a44", fontFamily: "var(--font-montserrat), sans-serif" }}
+          style={{
+            color: "#1f2a44",
+            fontFamily: "var(--font-montserrat), sans-serif",
+          }}
         >
           Delete document?
         </h3>
         <p
           className="text-sm mb-5"
-          style={{ color: "#6b7280", fontFamily: "var(--font-montserrat), sans-serif" }}
+          style={{
+            color: "#6b7280",
+            fontFamily: "var(--font-montserrat), sans-serif",
+          }}
         >
           <span className="font-semibold" style={{ color: "#1f2a44" }}>
             {formatFileName(documentName)}
@@ -152,11 +166,10 @@ function ConfirmDialog({
           and all its indexed chunks will be permanently deleted. Kora will no
           longer be able to answer questions from this document.
         </p>
-
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
             style={{
               backgroundColor: "#e6eaf0",
               color: "#1f2a44",
@@ -167,7 +180,7 @@ function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
             style={{
               backgroundColor: "#dc2626",
               color: "#ffffff",
@@ -201,7 +214,7 @@ function UploadZone({
       const file = e.dataTransfer.files[0];
       if (file) onUpload(file);
     },
-    [onUpload]
+    [onUpload],
   );
 
   return (
@@ -229,7 +242,6 @@ function UploadZone({
           if (file) onUpload(file);
         }}
       />
-
       <div
         className="w-12 h-12 rounded-2xl flex items-center justify-center"
         style={{ backgroundColor: isDragging ? "#a2d2ff22" : "#e6eaf0" }}
@@ -248,20 +260,187 @@ function UploadZone({
           />
         )}
       </div>
-
       <div className="text-center">
         <p
           className="text-sm font-semibold"
-          style={{ color: "#1f2a44", fontFamily: "var(--font-montserrat), sans-serif" }}
+          style={{
+            color: "#1f2a44",
+            fontFamily: "var(--font-montserrat), sans-serif",
+          }}
         >
-          {isUploading ? "Uploading and ingesting..." : "Drop a file or click to upload"}
+          {isUploading
+            ? "Uploading and ingesting..."
+            : "Drop a file or click to upload"}
         </p>
         <p
           className="text-xs mt-1"
-          style={{ color: "#9aa5b4", fontFamily: "var(--font-montserrat), sans-serif" }}
+          style={{
+            color: "#9aa5b4",
+            fontFamily: "var(--font-montserrat), sans-serif",
+          }}
         >
           PDF or TXT, up to 10MB
         </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Pagination controls ──────────────────────────────────────────────────────
+
+function Pagination({
+  currentPage,
+  totalPages,
+  totalItems,
+  pageSize,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}) {
+  const start = (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, totalItems);
+
+  return (
+    <div
+      className="flex items-center justify-between px-5 py-3 border-t"
+      style={{ borderColor: "#f1f5f9" }}
+    >
+      {/* Info */}
+      <p
+        className="text-xs"
+        style={{
+          color: "#9aa5b4",
+          fontFamily: "var(--font-montserrat), sans-serif",
+        }}
+      >
+        Showing {start} to {end} of {totalItems} documents
+      </p>
+
+      {/* Controls */}
+      <div className="flex items-center gap-2">
+        {/* Prev */}
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150"
+          style={{
+            backgroundColor: currentPage === 1 ? "#f4f6f9" : "#e6eaf0",
+            color: currentPage === 1 ? "#c4cdd8" : "#1f2a44",
+            cursor: currentPage === 1 ? "not-allowed" : "pointer",
+            fontFamily: "var(--font-montserrat), sans-serif",
+          }}
+          onMouseEnter={(e) => {
+            if (currentPage !== 1) {
+              e.currentTarget.style.backgroundColor = "#1f2a44";
+              e.currentTarget.style.color = "#ffffff";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (currentPage !== 1) {
+              e.currentTarget.style.backgroundColor = "#e6eaf0";
+              e.currentTarget.style.color = "#1f2a44";
+            }
+          }}
+        >
+          <ChevronLeft className="w-3.5 h-3.5" strokeWidth={2} />
+          Prev
+        </button>
+
+        {/* Page numbers */}
+        <div className="flex items-center gap-1">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+            const isActive = page === currentPage;
+            const isNearCurrent =
+              page === 1 ||
+              page === totalPages ||
+              Math.abs(page - currentPage) <= 1;
+
+            if (!isNearCurrent) {
+              if (page === 2 && currentPage > 3) {
+                return (
+                  <span
+                    key={page}
+                    className="text-xs px-1"
+                    style={{ color: "#9aa5b4" }}
+                  >
+                    ...
+                  </span>
+                );
+              }
+              if (page === totalPages - 1 && currentPage < totalPages - 2) {
+                return (
+                  <span
+                    key={page}
+                    className="text-xs px-1"
+                    style={{ color: "#9aa5b4" }}
+                  >
+                    ...
+                  </span>
+                );
+              }
+              return null;
+            }
+
+            return (
+              <button
+                key={page}
+                onClick={() => onPageChange(page)}
+                className="w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-150"
+                style={{
+                  backgroundColor: isActive ? "#1f2a44" : "transparent",
+                  color: isActive ? "#ffffff" : "#6b7280",
+                  fontFamily: "var(--font-montserrat), sans-serif",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = "#e6eaf0";
+                    e.currentTarget.style.color = "#1f2a44";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#6b7280";
+                  }
+                }}
+              >
+                {page}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Next */}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150"
+          style={{
+            backgroundColor: currentPage === totalPages ? "#f4f6f9" : "#e6eaf0",
+            color: currentPage === totalPages ? "#c4cdd8" : "#1f2a44",
+            cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+            fontFamily: "var(--font-montserrat), sans-serif",
+          }}
+          onMouseEnter={(e) => {
+            if (currentPage !== totalPages) {
+              e.currentTarget.style.backgroundColor = "#1f2a44";
+              e.currentTarget.style.color = "#ffffff";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (currentPage !== totalPages) {
+              e.currentTarget.style.backgroundColor = "#e6eaf0";
+              e.currentTarget.style.color = "#1f2a44";
+            }
+          }}
+        >
+          Next
+          <ChevronRight className="w-3.5 h-3.5" strokeWidth={2} />
+        </button>
       </div>
     </div>
   );
@@ -291,41 +470,90 @@ export function KoraAdminPanel({
     message: string;
     type: "success" | "error";
   } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(documents.length / PAGE_SIZE);
+  const paginatedDocs = documents.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
 
-  const refreshDocuments = async () => {
+  const refreshDocuments = async (silent = false) => {
     const supabase = createClient();
     const { data } = await supabase
       .from("documents")
       .select("id, name, status, chunk_count, created_at, updated_at")
       .order("created_at", { ascending: false });
-    if (data) setDocuments(data);
+    if (data) {
+      setDocuments((prev) => {
+        // Check if any previously processing docs are now indexed or failed
+        if (!silent) {
+          prev.forEach((old) => {
+            const updated = data.find((d) => d.id === old.id);
+            if (!updated) return;
+            if (
+              (old.status === "queued" || old.status === "processing") &&
+              updated.status === "indexed"
+            ) {
+              showToast(
+                `${formatFileName(old.name)} has been indexed successfully.`,
+                "success",
+              );
+            }
+            if (
+              (old.status === "queued" || old.status === "processing") &&
+              updated.status === "failed"
+            ) {
+              showToast(
+                `${formatFileName(old.name)} failed to ingest. Try re-ingesting.`,
+                "error",
+              );
+            }
+          });
+        }
+        return data;
+      });
+      if (!silent) setCurrentPage(1);
+    }
   };
 
-  // ─── Upload ──────────────────────────────────────────────────────────────────
+  // ─── Auto-poll while any document is in a non-final state ─────────────────
+
+  useEffect(() => {
+    const hasInProgress = documents.some(
+      (d) => d.status === "queued" || d.status === "processing",
+    );
+
+    if (!hasInProgress) return;
+
+    const interval = setInterval(() => {
+      refreshDocuments(true);
+    }, 3000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documents]);
 
   const handleUpload = async (file: File) => {
     setIsUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
-
       const response = await fetch(`${API_URL}/documents/ingest`, {
         method: "POST",
         body: formData,
       });
-
       if (!response.ok) {
         const err = await response.json();
         throw new Error(err.detail || "Upload failed");
       }
-
       showToast(`${file.name} ingested successfully.`, "success");
-      await refreshDocuments();
+      await refreshDocuments(false);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Upload failed";
       showToast(message, "error");
@@ -333,8 +561,6 @@ export function KoraAdminPanel({
       setIsUploading(false);
     }
   };
-
-  // ─── Delete ──────────────────────────────────────────────────────────────────
 
   const handleDelete = async (doc: Document) => {
     setConfirmDelete(null);
@@ -345,10 +571,13 @@ export function KoraAdminPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ documentId: doc.id }),
       });
-
       if (!response.ok) throw new Error("Delete failed");
-
-      setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
+      const updated = documents.filter((d) => d.id !== doc.id);
+      setDocuments(updated);
+      // Adjust page if last item on page was deleted
+      const newTotalPages = Math.ceil(updated.length / PAGE_SIZE);
+      if (currentPage > newTotalPages)
+        setCurrentPage(Math.max(1, newTotalPages));
       showToast(`${formatFileName(doc.name)} deleted.`, "success");
     } catch {
       showToast("Failed to delete document. Please try again.", "error");
@@ -357,20 +586,18 @@ export function KoraAdminPanel({
     }
   };
 
-  // ─── Re-ingest ───────────────────────────────────────────────────────────────
-
   const handleReingest = async (doc: Document) => {
     setReingesting(doc.id);
     try {
-      const response = await fetch(
-        `${API_URL}/documents/${doc.id}/reingest`,
-        { method: "POST" }
-      );
-
+      const response = await fetch(`${API_URL}/documents/${doc.id}/reingest`, {
+        method: "POST",
+      });
       if (!response.ok) throw new Error("Re-ingest failed");
-
-      showToast(`${formatFileName(doc.name)} re-ingested successfully.`, "success");
-      await refreshDocuments();
+      showToast(
+        `${formatFileName(doc.name)} re-ingested successfully.`,
+        "success",
+      );
+      await refreshDocuments(false);
     } catch {
       showToast("Re-ingest failed. Please try again.", "error");
     } finally {
@@ -392,7 +619,6 @@ export function KoraAdminPanel({
           style={{
             backgroundColor: toast.type === "success" ? "#dcfce7" : "#fef2f2",
             border: `1px solid ${toast.type === "success" ? "#bbf7d0" : "#fecaca"}`,
-            fontFamily: "var(--font-montserrat), sans-serif",
           }}
         >
           {toast.type === "success" ? (
@@ -404,6 +630,7 @@ export function KoraAdminPanel({
             className="text-sm font-medium"
             style={{
               color: toast.type === "success" ? "#16a34a" : "#dc2626",
+              fontFamily: "var(--font-montserrat), sans-serif",
             }}
           >
             {toast.message}
@@ -421,8 +648,7 @@ export function KoraAdminPanel({
       )}
 
       <div className="max-w-5xl mx-auto space-y-8">
-
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
             <p
@@ -431,43 +657,62 @@ export function KoraAdminPanel({
             >
               AI Projects / Kora
             </p>
-            <h1
-              className="text-3xl font-bold"
-              style={{ color: "#1f2a44" }}
-            >
+            <h1 className="text-3xl font-bold" style={{ color: "#1f2a44" }}>
               Kora
             </h1>
             <p className="text-sm mt-1" style={{ color: "#6b7280" }}>
               Knowledge Assistant — Meridian Works
             </p>
           </div>
-
-          <a
-            href="/demo/vault"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150"
-            style={{
-              backgroundColor: "#1f2a44",
-              color: "#ffffff",
-              textDecoration: "none",
-              fontFamily: "var(--font-montserrat), sans-serif",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#a2d2ff";
-              e.currentTarget.style.color = "#1f2a44";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#1f2a44";
-              e.currentTarget.style.color = "#ffffff";
-            }}
-          >
-            <ExternalLink className="w-4 h-4" strokeWidth={1.5} />
-            Open demo
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href="/suite/kora/analytics"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150"
+              style={{
+                backgroundColor: "#e6eaf0",
+                color: "#1f2a44",
+                textDecoration: "none",
+                fontFamily: "var(--font-montserrat), sans-serif",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#1f2a44";
+                e.currentTarget.style.color = "#ffffff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#e6eaf0";
+                e.currentTarget.style.color = "#1f2a44";
+              }}
+            >
+              <Activity className="w-4 h-4" strokeWidth={1.5} />
+              Analytics
+            </a>
+            <a
+              href="/demo/vault"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150"
+              style={{
+                backgroundColor: "#1f2a44",
+                color: "#ffffff",
+                textDecoration: "none",
+                fontFamily: "var(--font-montserrat), sans-serif",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#a2d2ff";
+                e.currentTarget.style.color = "#1f2a44";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#1f2a44";
+                e.currentTarget.style.color = "#ffffff";
+              }}
+            >
+              <ExternalLink className="w-4 h-4" strokeWidth={1.5} />
+              Open demo
+            </a>
+          </div>
         </div>
 
-        {/* ── Stats ── */}
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             {
@@ -520,7 +765,11 @@ export function KoraAdminPanel({
                   style={{ backgroundColor: stat.accent + "18" }}
                 >
                   <stat.icon
-                    style={{ width: "15px", height: "15px", color: stat.accent }}
+                    style={{
+                      width: "15px",
+                      height: "15px",
+                      color: stat.accent,
+                    }}
                     strokeWidth={1.5}
                   />
                 </div>
@@ -540,24 +789,18 @@ export function KoraAdminPanel({
           ))}
         </div>
 
-        {/* ── Upload zone ── */}
+        {/* Upload */}
         <div>
-          <h2
-            className="text-base font-bold mb-4"
-            style={{ color: "#1f2a44" }}
-          >
+          <h2 className="text-base font-bold mb-4" style={{ color: "#1f2a44" }}>
             Upload Document
           </h2>
           <UploadZone onUpload={handleUpload} isUploading={isUploading} />
         </div>
 
-        {/* ── Document table ── */}
+        {/* Document table */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2
-              className="text-base font-bold"
-              style={{ color: "#1f2a44" }}
-            >
+            <h2 className="text-base font-bold" style={{ color: "#1f2a44" }}>
               Knowledge Base
             </h2>
             <div className="flex items-center gap-2">
@@ -565,7 +808,7 @@ export function KoraAdminPanel({
                 {indexedCount} of {documents.length} indexed
               </span>
               <button
-                onClick={refreshDocuments}
+                onClick={() => refreshDocuments(false)}
                 className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
                 style={{ backgroundColor: "#e6eaf0", color: "#1f2a44" }}
                 title="Refresh"
@@ -588,10 +831,7 @@ export function KoraAdminPanel({
                 style={{ color: "#d0d8e4" }}
                 strokeWidth={1.5}
               />
-              <p
-                className="text-sm font-semibold"
-                style={{ color: "#9aa5b4" }}
-              >
+              <p className="text-sm font-semibold" style={{ color: "#9aa5b4" }}>
                 No documents yet
               </p>
               <p className="text-xs mt-1" style={{ color: "#c4cdd8" }}>
@@ -610,38 +850,33 @@ export function KoraAdminPanel({
               {/* Table header */}
               <div
                 className="grid grid-cols-12 gap-4 px-5 py-3 border-b"
-                style={{
-                  borderColor: "#f1f5f9",
-                  backgroundColor: "#f8fafc",
-                }}
+                style={{ borderColor: "#f1f5f9", backgroundColor: "#f8fafc" }}
               >
-                {["Document", "Status", "Chunks", "Added", "Actions"].map(
-                  (h, i) => (
-                    <div
-                      key={h}
-                      className={`text-[10px] font-bold uppercase tracking-widest ${
-                        i === 0
-                          ? "col-span-4"
-                          : i === 4
-                          ? "col-span-2 text-right"
-                          : "col-span-2"
-                      }`}
-                      style={{ color: "#9aa5b4" }}
-                    >
-                      {h}
-                    </div>
-                  )
-                )}
+                {[
+                  { label: "Document", span: "col-span-4" },
+                  { label: "Status", span: "col-span-2" },
+                  { label: "Chunks", span: "col-span-2" },
+                  { label: "Added", span: "col-span-2" },
+                  { label: "Actions", span: "col-span-2 text-right" },
+                ].map((h) => (
+                  <div
+                    key={h.label}
+                    className={`text-[10px] font-bold uppercase tracking-widest ${h.span}`}
+                    style={{ color: "#9aa5b4" }}
+                  >
+                    {h.label}
+                  </div>
+                ))}
               </div>
 
               {/* Rows */}
-              {documents.map((doc, index) => (
+              {paginatedDocs.map((doc, index) => (
                 <div
                   key={doc.id}
                   className="grid grid-cols-12 gap-4 px-5 py-4 items-center transition-colors"
                   style={{
                     borderBottom:
-                      index < documents.length - 1
+                      index < paginatedDocs.length - 1
                         ? "1px solid #f1f5f9"
                         : "none",
                   }}
@@ -709,15 +944,11 @@ export function KoraAdminPanel({
 
                   {/* Actions */}
                   <div className="col-span-2 flex items-center justify-end gap-2">
-                    {/* Re-ingest */}
                     <button
                       onClick={() => handleReingest(doc)}
                       disabled={reingesting === doc.id}
                       className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
-                      style={{
-                        backgroundColor: "#e6eaf0",
-                        color: "#1f2a44",
-                      }}
+                      style={{ backgroundColor: "#e6eaf0", color: "#1f2a44" }}
                       title="Re-ingest"
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = "#1f2a44";
@@ -738,15 +969,11 @@ export function KoraAdminPanel({
                       )}
                     </button>
 
-                    {/* Delete */}
                     <button
                       onClick={() => setConfirmDelete(doc)}
                       disabled={deleting === doc.id}
                       className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
-                      style={{
-                        backgroundColor: "#e6eaf0",
-                        color: "#9aa5b4",
-                      }}
+                      style={{ backgroundColor: "#e6eaf0", color: "#9aa5b4" }}
                       title="Delete"
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = "#fef2f2";
@@ -769,6 +996,17 @@ export function KoraAdminPanel({
                   </div>
                 </div>
               ))}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={documents.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={setCurrentPage}
+                />
+              )}
             </div>
           )}
         </div>
