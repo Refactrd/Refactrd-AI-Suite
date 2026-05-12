@@ -227,6 +227,9 @@ export function useChat() {
 
       abortRef.current = false;
 
+      // Track the assistant message ID so follow-ups target the right message
+      const assistantMessageId = generateId();
+
       const userMessage: Message = {
         id: generateId(),
         role: "user",
@@ -235,7 +238,7 @@ export function useChat() {
       };
 
       const assistantMessage: Message = {
-        id: generateId(),
+        id: assistantMessageId,
         role: "assistant",
         content: "",
         citations: [],
@@ -257,22 +260,29 @@ export function useChat() {
         saveActiveSessionId(currentSessionId);
       }
 
+      // Accumulate the full response text so we can pass it to follow-ups
+      let accumulatedContent = "";
+
       await streamKoraQuery(
         { question: question.trim(), conversationId: currentSessionId },
 
+        // onChunk
         (chunk: string) => {
           if (abortRef.current) return;
+          accumulatedContent += chunk;
           updateLastAssistantMessage((msg) => ({
             ...msg,
             content: msg.content + chunk,
           }));
         },
 
+        // onCitations
         (citations: Citation[]) => {
           if (abortRef.current) return;
           updateLastAssistantMessage((msg) => ({ ...msg, citations }));
         },
 
+        // onError
         (error: ApiError) => {
           if (abortRef.current) return;
           const errorMessage =
@@ -292,41 +302,39 @@ export function useChat() {
           });
         },
 
-        
-
         // onDone
         async () => {
           if (abortRef.current) return;
-          updateLastAssistantMessage((msg) => ({ ...msg, isStreaming: false }));
 
+          // Mark streaming as done and persist
+          updateLastAssistantMessage((msg) => ({ ...msg, isStreaming: false }));
           setState((prev) => {
             persistSession(prev.messages, currentSessionId);
             return { ...prev, isLoading: false };
           });
 
-          // Fetch follow-up suggestions after streaming is done
-          setState((prev) => {
-            const lastAssistant = [...prev.messages]
-              .reverse()
-              .find((m) => m.role === "assistant");
-            if (!lastAssistant || !lastAssistant.content) return prev;
+          // Fetch follow-ups once using the accumulated content
+          // Use the assistantMessageId captured in closure to target exact message
+          if (!accumulatedContent) return;
 
-            fetchFollowUps(question.trim(), lastAssistant.content).then(
-              (followUps) => {
-                if (followUps.length === 0) return;
-                setState((s) => {
-                  const msgs = [...s.messages];
-                  const idx = msgs.findIndex((m) => m.id === lastAssistant.id);
-                  if (idx !== -1) {
-                    msgs[idx] = { ...msgs[idx], followUps };
-                  }
-                  return { ...s, messages: msgs };
-                });
-              },
+          try {
+            const followUps = await fetchFollowUps(
+              question.trim(),
+              accumulatedContent,
             );
+            if (abortRef.current) return;
+            if (followUps.length === 0) return;
 
-            return prev;
-          });
+            setState((prev) => {
+              const msgs = [...prev.messages];
+              const idx = msgs.findIndex((m) => m.id === assistantMessageId);
+              if (idx === -1) return prev;
+              msgs[idx] = { ...msgs[idx], followUps };
+              return { ...prev, messages: msgs };
+            });
+          } catch {
+            // Follow-ups are non-critical, never throw
+          }
         },
       );
     },
