@@ -56,7 +56,9 @@ export default async function SuiteDashboard() {
   const docsIndexed = Number(stats?.documents_indexed ?? 0);
   const totalQueries = Number(stats?.total_queries ?? 0);
   const queriesThisWeek = Number(stats?.queries_this_week ?? 0);
-  const avgLatency = stats?.avg_latency_ms ? Number(stats.avg_latency_ms) : null;
+  const avgLatency = stats?.avg_latency_ms
+    ? Number(stats.avg_latency_ms)
+    : null;
 
   return (
     <div
@@ -64,7 +66,6 @@ export default async function SuiteDashboard() {
       style={{ fontFamily: "var(--font-montserrat), sans-serif" }}
     >
       <div className="max-w-5xl mx-auto space-y-8">
-
         {/* ── Page header ── */}
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -74,16 +75,10 @@ export default async function SuiteDashboard() {
             >
               {formatDate()}
             </p>
-            <h1
-              className="text-3xl font-bold"
-              style={{ color: "#1f2a44" }}
-            >
+            <h1 className="text-3xl font-bold" style={{ color: "#1f2a44" }}>
               {greeting}, {userName}.
             </h1>
-            <p
-              className="text-sm mt-1"
-              style={{ color: "#6b7280" }}
-            >
+            <p className="text-sm mt-1" style={{ color: "#6b7280" }}>
               Here is what is happening across your AI Suite today.
             </p>
           </div>
@@ -101,16 +96,10 @@ export default async function SuiteDashboard() {
         {/* ── AI Projects ── */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2
-              className="text-base font-bold"
-              style={{ color: "#1f2a44" }}
-            >
+            <h2 className="text-base font-bold" style={{ color: "#1f2a44" }}>
               AI Projects
             </h2>
-            <span
-              className="text-xs"
-              style={{ color: "#9aa5b4" }}
-            >
+            <span className="text-xs" style={{ color: "#9aa5b4" }}>
               1 of 1 live
             </span>
           </div>
@@ -128,6 +117,18 @@ export default async function SuiteDashboard() {
               ]}
               href="/suite/kora"
             />
+            <ProjectCard
+              name="Quill"
+              category="Workflow Automation"
+              description="An AI-powered SOW and proposal generator. Paste discovery call notes and get a structured, client-ready proposal in minutes."
+              status="building"
+              stats={[
+                { label: "Version", value: "POC" },
+                { label: "Status", value: "Building" },
+                { label: "Target", value: "Q2" },
+              ]}
+              href="/demo/sow"
+            />
             <NextProjectPlaceholder />
           </div>
         </div>
@@ -135,10 +136,7 @@ export default async function SuiteDashboard() {
         {/* ── Recent activity ── */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2
-              className="text-base font-bold"
-              style={{ color: "#1f2a44" }}
-            >
+            <h2 className="text-base font-bold" style={{ color: "#1f2a44" }}>
               Recent Activity
             </h2>
             <a
@@ -151,7 +149,6 @@ export default async function SuiteDashboard() {
           </div>
           <ActivityFeed queries={recentQueries ?? []} />
         </div>
-
       </div>
     </div>
   );

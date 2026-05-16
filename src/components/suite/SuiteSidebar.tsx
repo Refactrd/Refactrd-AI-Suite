@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import {
   LayoutDashboard,
@@ -9,6 +10,7 @@ import {
   Settings,
   LogOut,
   Sparkles,
+  Feather,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -142,7 +144,7 @@ export function SuiteSidebar({ userEmail }: SuiteSidebarProps) {
           /* Collapsed: small icon mark in brand square */
           <div
             className="flex items-center justify-center rounded-xl flex-shrink-0"
-            style={{ width: "50px", height: "50px",  backgroundColor: "#1f2a44", minWidth: "50px" }}
+            style={{ width: "50px", height: "50px", backgroundColor: "#1f2a44", minWidth: "50px" }}
           >
             <Image
               src="/images/refactrd-small-logo.png"
@@ -150,19 +152,21 @@ export function SuiteSidebar({ userEmail }: SuiteSidebarProps) {
               width={22}
               height={22}
               className="object-contain"
+              
             />
           </div>
         ) : (
           /* Expanded: big logo + AI Suite label stacked */
           <div className="flex items-center">
             <Image
-              src="/images/Refactrd-logo-short.png"
+              src="/images/refactrd-logo-short.png"
               alt="Refactrd"
               width={150}
               height={36}
               className="object-contain"
-              
+             
             />
+            
           </div>
         )}
       </div>
@@ -302,6 +306,7 @@ export function SuiteSidebar({ userEmail }: SuiteSidebarProps) {
           )}
           {collapsed && <div className="mb-3 h-4" />}
 
+          {/* Kora */}
           <Tooltip
             label="Kora — Knowledge Assistant"
             show={collapsed && hoveredItem === "kora-project"}
@@ -332,7 +337,6 @@ export function SuiteSidebar({ userEmail }: SuiteSidebarProps) {
               >
                 <Sparkles style={{ width: "12px", height: "12px", color: "#1f2a44" }} strokeWidth={1.5} />
               </div>
-
               {!collapsed && (
                 <div
                   className="flex items-center justify-between flex-1 ml-2.5 overflow-hidden"
@@ -347,6 +351,64 @@ export function SuiteSidebar({ userEmail }: SuiteSidebarProps) {
                     </p>
                     <p className="text-[10px] mt-0.5 whitespace-nowrap" style={{ color: "#9aa5b4" }}>
                       Knowledge Assistant
+                    </p>
+                  </div>
+                  <span
+                    className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase whitespace-nowrap ml-2 flex-shrink-0"
+                    style={{ backgroundColor: "#dcfce7", color: "#16a34a" }}
+                  >
+                    Live
+                  </span>
+                </div>
+              )}
+            </button>
+          </Tooltip>
+
+          {/* Quill */}
+          <Tooltip
+            label="Quill — SOW Generator"
+            show={collapsed && hoveredItem === "quill-project"}
+          >
+            <button
+              onClick={() => router.push("/suite/quill")}
+              onMouseEnter={() => setHoveredItem("quill-project")}
+              onMouseLeave={() => setHoveredItem(null)}
+              className="flex items-center rounded-xl transition-all duration-150 w-full overflow-hidden"
+              style={{
+                height: "40px",
+                padding: collapsed ? "0" : "0 12px",
+                justifyContent: collapsed ? "center" : "flex-start",
+                color: "#4a5568",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = "#e6eaf0";
+                e.currentTarget.style.color = "#1f2a44";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#4a5568";
+              }}
+            >
+              <div
+                className="flex items-center justify-center rounded-md flex-shrink-0"
+                style={{ width: "24px", height: "24px", minWidth: "24px", backgroundColor: "#1f2a4415" }}
+              >
+                <Feather style={{ width: "12px", height: "12px", color: "#1f2a44" }} strokeWidth={1.5} />
+              </div>
+              {!collapsed && (
+                <div
+                  className="flex items-center justify-between flex-1 ml-2.5 overflow-hidden"
+                  style={{ opacity: collapsed ? 0 : 1, transition: "opacity 150ms ease" }}
+                >
+                  <div className="text-left min-w-0">
+                    <p
+                      className="text-xs font-semibold leading-none whitespace-nowrap"
+                      style={{ color: "#1f2a44", fontFamily: "var(--font-montserrat), sans-serif" }}
+                    >
+                      Quill
+                    </p>
+                    <p className="text-[10px] mt-0.5 whitespace-nowrap" style={{ color: "#9aa5b4" }}>
+                      SOW Generator
                     </p>
                   </div>
                   <span
