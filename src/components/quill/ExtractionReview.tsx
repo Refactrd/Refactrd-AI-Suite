@@ -222,7 +222,6 @@ export function ExtractionReview({
   onEdit,
   onBack,
   onGenerate,
-  notes,
 }: ExtractionReviewProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 

@@ -2,7 +2,6 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 import {
   LayoutDashboard,

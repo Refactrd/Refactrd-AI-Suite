@@ -11,7 +11,7 @@ interface MessageThreadProps {
   onFollowUp: (question: string) => void;
 }
 
-export function MessageThread({ messages, isLoading, onFollowUp }: MessageThreadProps) {
+export function MessageThread({ messages, onFollowUp }: MessageThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

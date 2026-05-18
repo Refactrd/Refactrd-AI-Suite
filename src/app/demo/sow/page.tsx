@@ -5,7 +5,7 @@ import { QuillHeader } from "@/components/quill/QuillHeader";
 import { DiscoveryInput } from "@/components/quill/DiscoveryInput";
 import { ExtractionReview } from "@/components/quill/ExtractionReview";
 import { SOWViewer } from "@/components/quill/SOWViewer";
-import { Loader2, Feather } from "lucide-react";
+import { Feather } from "lucide-react";
 
 export type ExtractionResult = {
   clientName: string;
